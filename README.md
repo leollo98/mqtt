@@ -738,3 +738,59 @@ Caso o arquivo ainda não exista, defina a licença antes de publicar o reposit�
 **Leonardo de Macedo Sartorello**
 
 Projeto desenvolvido como aplicação embarcada utilizando ESP32, ESP-IDF, PZEM, FreeRTOS e MQTT.
+
+## Melhorias futuras
+
+O projeto está funcional e contempla comunicação MQTT, reconexão, fila de telemetria, diagnóstico, simulação do PZEM, TLS e comandos remotos. Algumas melhorias podem ser incorporadas em versões futuras:
+
+* [ ] **Persistência da fila MQTT**
+
+  Atualmente, mensagens pendentes são mantidas em RAM. Uma futura implementação pode utilizar NVS, LittleFS ou outro mecanismo de armazenamento não volátil para preservar a telemetria mesmo após reinicializações ou perda de energia.
+
+* [ ] **Identificação das mensagens**
+
+  Adicionar identificadores e timestamps às mensagens de telemetria para facilitar rastreamento, diagnóstico e correlação dos dados no backend.
+
+* [ ] **Melhoria do controle de reconexão MQTT**
+
+  Evoluir a estratégia atual de reconexão para utilizar backoff progressivo e reduzir tentativas excessivas durante indisponibilidade prolongada do broker.
+
+* [ ] **Persistência das configurações**
+
+  Permitir que parâmetros alterados remotamente, como o intervalo de leitura do PZEM, possam ser persistidos e restaurados após reinicialização.
+
+* [ ] **Mais comandos MQTT**
+
+  Expandir a interface de comandos para permitir operações adicionais, como solicitação imediata de uma leitura, consulta de configurações e reinicialização controlada do dispositivo.
+
+* [ ] **Autenticação MQTT**
+
+  Adicionar suporte à autenticação por usuário e senha, além das opções de validação de certificado TLS já disponíveis.
+
+* [ ] **Melhorias de segurança**
+
+  Avaliar mecanismos adicionais de segurança para comandos remotos, incluindo autenticação, autorização e proteção contra comandos não autorizados.
+
+* [ ] **Testes automatizados**
+
+  Criar testes unitários para o parser de comandos, CRC Modbus, máquina de estados MQTT e demais componentes que possam ser testados sem hardware físico.
+
+* [ ] **Testes de integração**
+
+  Automatizar cenários envolvendo perda de Wi-Fi, desconexão MQTT, reconexão, acúmulo de mensagens e recuperação do dispositivo.
+
+* [ ] **Monitoramento mais completo**
+
+  Expandir a mensagem de health/diagnóstico com informações adicionais do sistema, como estado do Wi-Fi, RSSI, uptime detalhado, uso de memória e informações sobre a fila MQTT.
+
+* [ ] **Documentação de arquitetura**
+
+  Adicionar diagramas e documentação detalhada sobre o fluxo entre PZEM, aplicação, fila MQTT, máquina de estados e broker.
+
+* [ ] **CI/CD**
+
+  Configurar integração contínua para compilar o projeto automaticamente e executar testes a cada alteração no repositório.
+
+* [ ] **Suporte a diferentes sensores**
+
+  Estruturar a camada de aquisição de dados para facilitar a integração futura de outros sensores de energia ou dispositivos Modbus.
