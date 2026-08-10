@@ -1,0 +1,231 @@
+menu "Configuração da Aplicação"
+
+    menu "Wi-Fi"
+
+        config APP_WIFI_PROVISIONING
+            bool "Habilitar provisionamento"
+            default y
+
+        config APP_WIFI_MAX_RETRY
+            int "Número máximo de tentativas"
+            range 1 20
+            default 5
+
+    endmenu
+
+
+    menu "MQTT Configuration"
+
+        choice CERT_VALIDATION
+            prompt "Certificate validation method"
+            default CERT_VALIDATE_BUNDLE
+            help
+                Choose how the broker's TLS server certificate is validated.
+                - Certificate bundle (default).
+                - Embedded certificate
+
+            config CERT_VALIDATE_BUNDLE
+                bool "Certificate bundle"
+
+            config CERT_VALIDATE_CA
+                bool "Embedded Certificate"
+
+            config CERT_VALIDATE_OVERRIDE
+                bool "Custom certificate"
+
+
+        endchoice
+
+        config MQTT_BROKER_URI
+            string "MQTT broker URI"
+            default "mqtts://broker.emqx.io:8883"
+            help
+                URI to the MQTT broker. 
+                mqtts:// for TLS, mqtt:// for plaintext.
+
+        if CERT_VALIDATE_OVERRIDE
+            config BROKER_CERTIFICATE_OVERRIDE
+                string "Broker certificate override (PEM body)"
+                default ""
+                help
+                    Optional: override server certificate by embedding a PEM constructed
+                    from this base64 body. Leave empty to use the certificate bundle or the
+                    embedded CA. Provide only the base64 payload without the
+                    BEGIN/END markers.
+        endif
+        
+        config APP_MQTT_QUEUE_SIZE
+            int "Quantidade máxima de medidas MQTT pendentes"
+            range 1 100
+            default 10
+            help
+                Define quantas medidas de telemetria podem permanecer
+                pendentes na fila MQTT enquanto aguardam publicação.
+
+                A fila é mantida em RAM e as medidas são preservadas
+                durante períodos de desconexão MQTT.
+
+                Quando a fila estiver cheia, a medida mais antiga
+                será descartada para permitir a entrada da medida
+                mais recente.
+
+
+        config MQTT_TELEMETRY_ENDPOINT
+            string "MQTT telemetry endpoint"
+            default "esp32/pzem/telemetry"
+            help
+                MQTT topic to publish telemetry data.
+
+        config MQTT_BUTTON_ENDPOINT
+            string "MQTT button endpoint"
+            default "esp32/pzem/button"
+            help
+                MQTT topic to publish button state changes.
+
+        config MQTT_HEALTH_ENDPOINT
+            string "MQTT health endpoint"
+            default "esp32/pzem/health"
+            help
+                MQTT topic to publish health status updates.
+
+        config MQTT_COMMAND_ENDPOINT
+            string "MQTT command endpoint"
+            default "esp32/pzem/command"
+            help
+                MQTT topic used to receive device commands.
+
+        config APP_MQTT_HEALTH_INTERVAL
+            int "Health report interval (seconds)"
+            range 5 3600
+            default 30
+            help
+                Defines the interval, in seconds, between health
+                diagnostic MQTT messages.
+
+        config APP_PZEM_READ_INTERVAL
+            int "PZEM read interval (seconds)"
+            range 1 3600
+            default 5
+            help
+                Default interval between PZEM sensor readings.
+            
+        config APP_PZEM_MIN_READ_INTERVAL
+            int "Minimum PZEM read interval (seconds)"
+            range 1 3600
+            default 1
+            help
+                Minimum allowed PZEM reading interval.
+            
+        config APP_PZEM_MAX_READ_INTERVAL
+            int "Maximum PZEM read interval (seconds)"
+            range 1 3600
+            default 3600
+            help
+                Maximum allowed PZEM reading interval.
+    endmenu
+
+    menu "Button Configuration"
+
+        config APP_BUTTON_GPIO
+            int "Button GPIO"
+            default 0
+            range 0 39
+            help
+                GPIO used for the digital button input.
+
+        config APP_BUTTON_ACTIVE_LOW
+            bool "Button active low"
+            default y
+            help
+                Set when the button is active when GPIO is LOW.
+
+        config APP_BUTTON_DEBOUNCE
+            bool "Enable button debounce"
+            default y
+            help
+                Enable software debounce for the button.
+
+        if APP_BUTTON_DEBOUNCE
+
+            config APP_BUTTON_DEBOUNCE_MS
+                int "Button debounce time (ms)"
+                default 50
+                range 1 1000
+                help
+                    Time that the button state must remain stable
+                    before the state change is considered valid.
+
+        endif
+
+    endmenu
+
+    menu "PZEM Configuration"
+
+        choice PZEM_MODE
+            prompt "PZEM operating mode"
+            default PZEM_MODE_HARDWARE
+        
+            config PZEM_MODE_HARDWARE
+                bool "Hardware"
+                help
+                    Read measurements from the physical PZEM sensor.
+                
+            config PZEM_MODE_SIMULATION
+                bool "Simulation"
+                help
+                    Generate simulated PZEM measurements without
+                    requiring external hardware.
+        endchoice
+                
+        if PZEM_MODE_SIMULATION
+                
+            config PZEM_SIM_VOLTAGE
+                int "Simulated voltage (V)"
+                range 0 500
+                default 220
+            
+            config PZEM_SIM_CURRENT
+                int "Simulated current (A)"
+                range 0 100
+                default 2
+            
+            config PZEM_SIM_FREQUENCY
+                int "Simulated frequency (Hz)"
+                range 0 100
+                default 60
+            
+            config PZEM_SIM_POWER_FACTOR
+                int "Simulated power factor x100"
+                range 0 100
+                default 95
+            
+        endif
+
+        if PZEM_MODE_HARDWARE
+
+
+            config APP_PZEM_TX_GPIO
+                int "PZEM TX GPIO"
+                default 17
+                range 0 39
+                help
+                    GPIO used for UART TX communication with the PZEM sensor.
+
+            config APP_PZEM_RX_GPIO
+                int "PZEM RX GPIO"
+                default 16
+                range 0 39
+                help
+                    GPIO used for UART RX communication with the PZEM sensor.
+
+            config APP_PZEM_UART_PORT
+                int "PZEM UART port"
+                default 1
+                range 0 2
+                help
+                    UART peripheral used for communication with the PZEM sensor.
+        endif
+            
+    endmenu
+
+endmenu
