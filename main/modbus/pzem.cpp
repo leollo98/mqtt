@@ -130,7 +130,7 @@ esp_err_t pzem_init(void) {
 	uart_config.rx_flow_ctrl_thresh = 0;
 	uart_config.source_clk = UART_SCLK_DEFAULT;
 
-	esp_err_t err = uart_driver_install(config::uart, config::rx_buffer_size,
+	esp_err_t err = uart_driver_install(config::pzem_uart, config::rx_buffer_size,
 										config::tx_buffer_size, 0, nullptr, 0);
 
 	if (err != ESP_OK) {
@@ -138,26 +138,26 @@ esp_err_t pzem_init(void) {
 		return err;
 	}
 
-	err = uart_param_config(config::uart, &uart_config);
+	err = uart_param_config(config::pzem_uart, &uart_config);
 
 	if (err != ESP_OK) {
 		ESP_LOGE(TAG, "Falha ao configurar UART: %s", esp_err_to_name(err));
-		uart_driver_delete(config::uart);
+		uart_driver_delete(config::pzem_uart);
 		return err;
 	}
 
-	err = uart_set_pin(config::uart, config::tx_gpio, config::rx_gpio,
+	err = uart_set_pin(config::pzem_uart, config::tx_gpio, config::rx_gpio,
 					   UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
 
 	if (err != ESP_OK) {
 		ESP_LOGE(TAG, "Falha ao configurar GPIOs da UART: %s",
 				 esp_err_to_name(err));
-		uart_driver_delete(config::uart);
+		uart_driver_delete(config::pzem_uart);
 		return err;
 	}
 
 	ESP_LOGI(TAG, "UART do PZEM inicializada: UART=%d TX=%d RX=%d Baud=%lu",
-			 config::uart, config::tx_gpio, config::rx_gpio,
+			 config::pzem_uart, config::tx_gpio, config::rx_gpio,
 			 static_cast<unsigned long>(config::baud_rate));
 
 	return ESP_OK;
@@ -187,7 +187,7 @@ static uint16_t pzem_crc16(const uint8_t* data, size_t length) {
 }
 
 static void pzem_flush_input(void) {
-	uart_flush_input(config::uart);
+	uart_flush_input(config::pzem_uart);
 }
 
 static esp_err_t pzem_send_request(uint8_t slave, uint8_t function, uint16_t address, uint16_t quantity) {
@@ -209,7 +209,7 @@ static esp_err_t pzem_send_request(uint8_t slave, uint8_t function, uint16_t add
 
 	pzem_flush_input();
 
-	int written = uart_write_bytes(config::uart, frame, sizeof(frame));
+	int written = uart_write_bytes(config::pzem_uart, frame, sizeof(frame));
 
 	if (written != sizeof(frame)) {
 		ESP_LOGE(TAG, "Falha ao enviar requisicao Modbus");
@@ -220,7 +220,7 @@ static esp_err_t pzem_send_request(uint8_t slave, uint8_t function, uint16_t add
 }
 
 static esp_err_t pzem_receive_header(uint8_t* header) {
-	int len = uart_read_bytes(config::uart, header, 3, config::timeout);
+	int len = uart_read_bytes(config::pzem_uart, header, 3, config::timeout);
 
 	if (len != 3) {
 		ESP_LOGE(TAG, "Timeout lendo cabecalho Modbus");
@@ -269,7 +269,7 @@ static esp_err_t pzem_receive_data(uint8_t* response, uint8_t byte_count) {
 	}
 	int expected_length = byte_count + 2;
 
-	int len = uart_read_bytes(config::uart, response, expected_length, config::timeout);
+	int len = uart_read_bytes(config::pzem_uart, response, expected_length, config::timeout);
 
 	if (len != expected_length) {
 		ESP_LOGE(TAG, "Resposta incompleta: esperado %d bytes, recebido %d",
